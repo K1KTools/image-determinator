@@ -1,0 +1,1927 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>K1K Image Determinator</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #121212;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #top-bar {
+            width: 100%;
+            max-width: 840px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .top-link {
+            color: #00adb5;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 8px 12px;
+            border-radius: 5px;
+            border: 1px solid #00adb5;
+            transition: 0.2s;
+            cursor: pointer;
+            background: transparent;
+            font-size: 1rem;
+        }
+
+        .top-link:hover {
+            background-color: #00adb5;
+            color: #121212;
+        }
+
+        .donar-link {
+            border-color: #ff0055;
+            color: #ff0055;
+            margin-right: 15px;
+        }
+
+        .donar-link:hover {
+            background-color: #ff0055;
+            color: #121212;
+        }
+
+        #main-title {
+            margin: 0;
+            font-size: 1.5rem;
+            color: #fff;
+            text-align: center;
+            flex-grow: 1;
+        }
+
+        #right-controls {
+            display: flex;
+            align-items: center;
+        }
+
+        #lang-select {
+            background: #1e1e1e;
+            color: white;
+            border: 1px solid #333;
+            padding: 8px;
+            border-radius: 4px;
+            outline: none;
+            font-weight: bold;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        #controles-container {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 800px;
+            border: 1px solid #333;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            margin-top: 30px;
+        }
+
+        #drop-zone {
+            border: 2px dashed #00adb5;
+            border-radius: 6px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            background: #222;
+            margin-bottom: 15px;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        #drop-zone:hover { background: #2a2a2a; }
+
+        .control-row {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            flex-grow: 1;
+            min-width: 100px;
+        }
+
+        label { font-size: 0.85rem; font-weight: bold; color: #ccc; cursor: help; }
+
+        input[type="number"], input[type="range"], select, input[type="color"] {
+            background: #2a2a2a;
+            color: white;
+            border: 1px solid #333;
+            padding: 8px;
+            border-radius: 4px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        input:disabled, select:disabled { background: #1a1a1a; color: #666; cursor: not-allowed; }
+
+        button {
+            background-color: #00adb5;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            flex-grow: 1;
+            transition: 0.2s;
+        }
+        button:hover:not(:disabled) { background-color: #007a80; }
+        
+        button:disabled { 
+            background-color: #555555 !important; 
+            color: #ffffff !important; 
+            cursor: not-allowed; 
+            opacity: 1; 
+        }
+        
+        button.btn-accion { background-color: #ffaa00; color: #000; }
+        button.btn-accion:hover:not(:disabled) { background-color: #cc8800; }
+        
+        button.btn-cancelar { background-color: #cc0000; color: #fff; }
+        button.btn-cancelar:hover:not(:disabled) { background-color: #aa0000; }
+
+        button.btn-reset { background-color: #444; color: #fff; border: 1px solid #666; }
+        button.btn-reset:hover:not(:disabled) { background-color: #666; }
+
+        button.btn-play { background-color: #ff0055; }
+        button.btn-play:hover:not(:disabled) { background-color: #cc0044; }
+
+        button.btn-dl { background-color: #00cc66; color: #000; }
+        button.btn-dl:hover:not(:disabled) { background-color: #00aa55; }
+
+        button.btn-purple { background-color: #8c00ff; color: #fff; }
+        button.btn-purple:hover:not(:disabled) { background-color: #7000cc; }
+        
+        .btn-demo { background-color: #8c00ff; color: #fff; display: none; }
+        .btn-demo:hover:not(:disabled) { background-color: #7000cc; }
+
+        details {
+            background: #252525;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #333;
+            margin-bottom: 15px;
+        }
+
+        details summary { cursor: pointer; font-weight: bold; outline: none; margin-bottom: 10px; color: #00adb5; }
+        
+        canvas { 
+            background-color: #050505; 
+            border: 1px solid #333; 
+            box-shadow: 0 0 15px rgba(0,0,0,0.5); 
+        }
+
+        #estado-container {
+            margin-top: 10px;
+            background: #1e1e1e;
+            padding: 15px;
+            border-radius: 5px;
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+        
+        #estado {
+            font-family: monospace;
+            color: #aaa;
+            font-size: 0.95rem;
+        }
+
+        progress {
+            width: 100%;
+            height: 12px;
+            border-radius: 5px;
+            margin-top: 10px;
+            background: #222;
+            border: 1px solid #333;
+            display: none;
+        }
+        progress::-webkit-progress-bar { background: #222; border-radius: 5px; }
+        progress::-webkit-progress-value { background: #8c00ff; border-radius: 5px; transition: width 0.1s linear; }
+        progress::-moz-progress-bar { background: #8c00ff; border-radius: 5px; }
+
+        .panel-destacado {
+            background: #111;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px dashed #8c00ff;
+            margin-top: 15px;
+            transition: 0.3s;
+        }
+        .chk-label {
+            display: flex; align-items: center; gap: 8px; cursor: pointer; color: white; font-size: 0.9rem;
+        }
+
+        #help-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.85);
+            backdrop-filter: blur(5px);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: #1e1e1e;
+            padding: 30px;
+            border: 1px solid #00adb5;
+            width: 90%;
+            max-width: 750px;
+            max-height: 85vh;
+            overflow-y: auto;
+            border-radius: 8px;
+            color: #e0e0e0;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            line-height: 1.6;
+        }
+
+        .close-btn {
+            color: #aaa;
+            position: absolute;
+            top: 15px;
+            right: 25px;
+            font-size: 35px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .close-btn:hover { color: #ff0055; }
+        .modal-content h2 { color: #00adb5; margin-top: 0; border-bottom: 2px solid #333; padding-bottom: 10px; }
+        .modal-content h3 { color: #ffaa00; margin-top: 25px; }
+        .modal-content h4 { color: #fff; margin-bottom: 5px; }
+        .modal-content p { margin-top: 5px; }
+        .modal-content ul { padding-left: 20px; }
+        .modal-content li { margin-bottom: 8px; }
+        .modal-content strong { color: #00adb5; }
+    </style>
+</head>
+<body>
+
+    <div id="top-bar">
+        <div>
+            <a href="https://k1ktools.github.io/" target="_blank" class="top-link">K1K Tools</a>
+            <button id="btn-help" class="top-link" style="margin-left: 10px;">Cómo usar</button>
+        </div>
+        <h1 id="main-title">K1K Image Determinator</h1>
+        <div id="right-controls">
+            <a href="https://ko-fi.com/k1000k" target="_blank" class="top-link donar-link"><span id="lbl-donar">Donar</span></a>
+            <select id="lang-select">
+                <option value="es">Español</option>
+                <option value="en">English</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="help-modal">
+        <div class="modal-content">
+            <span class="close-btn" id="close-modal">&times;</span>
+            <div id="help-text"></div>
+        </div>
+    </div>
+
+    <div id="controles-container">
+        <div id="drop-zone" data-i18n-title="t_dropzone">
+            <span id="lbl-dropzone">Arrastra una imagen o un archivo .json aquí o haz clic</span>
+            <input type="file" id="file-input" accept="image/*,.json,application/json" style="display: none;">
+        </div>
+
+        <div class="control-row">
+            <div class="control-group" style="max-width: 120px;">
+                <label id="lbl-cantidad" data-i18n-title="t_cantidad">Cantidad de Partículas:</label>
+                <input type="number" id="input-cantidad" value="2000">
+            </div>
+            <div class="control-group">
+                <label id="lbl-ancho" data-i18n-title="t_ancho">Ancho del Contenedor: <span id="val-ancho">400</span>px</label>
+                <input type="range" id="slider-ancho" min="100" max="780" value="400">
+            </div>
+            <div class="control-group" style="max-width: 180px;">
+                <label id="lbl-mapeo" data-i18n-title="t_mapeo">Modo de Mapeo:</label>
+                <select id="map-mode">
+                    <option value="crop" id="opt-crop">Recortar (Mantener proporción)</option>
+                    <option value="stretch" id="opt-stretch">Estirar (Ajustar a los bordes)</option>
+                </select>
+            </div>
+        </div>
+
+        <details>
+            <summary id="lbl-summary" data-i18n-title="t_summary">Físicas, Rendimiento y Emisión</summary>
+            
+            <div class="control-row" style="margin-bottom: 15px;">
+                <div class="control-group">
+                    <label id="lbl-bgcolor" data-i18n-title="t_bgcolor">Color de Fondo:</label>
+                    <input type="color" id="input-bg-color" value="#050505" style="padding: 2px; height: 35px;">
+                </div>
+                <div class="control-group" style="flex-grow: 2;">
+                    <label id="lbl-pcolor" data-i18n-title="t_pcolor">Color de Partículas (Previo a textura):</label>
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <input type="color" id="input-particle-color" value="#ffffff" style="padding: 2px; height: 35px;">
+                        <label class="chk-label" data-i18n-title="t_random" style="white-space: nowrap;">
+                            <input type="checkbox" id="check-random-color" style="width:18px; height:18px;">
+                            <span id="lbl-random">Arcoíris</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-row">
+                <div class="control-group">
+                    <label id="lbl-aparicion" data-i18n-title="t_aparicion">Modo de Emisión:</label>
+                    <select id="spawn-mode">
+                        <option value="fuente" id="opt-fuente">Fuente (Ascendente)</option>
+                        <option value="normal" id="opt-normal">Lluvia (Toda el área)</option>
+                        <option value="chorroCentral" id="opt-centro">Emisión Central</option>
+                        <option value="olaIzq" id="opt-izq">Proyección Izquierda</option>
+                        <option value="olaDer" id="opt-der">Proyección Derecha</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label id="lbl-duracion" data-i18n-title="t_duracion">Duración de Emisión (s):</label>
+                    <input type="number" id="input-spawntime" value="10" min="0" step="1">
+                </div>
+                <div class="control-group">
+                    <label id="lbl-fuente" data-i18n-title="t_fuente">Fuerza de Fuente:</label>
+                    <input type="number" id="input-fountain" value="15" step="1">
+                </div>
+            </div>
+            <div class="control-row">
+                <div class="control-group">
+                    <label id="lbl-substeps" data-i18n-title="t_substeps">Sub-pasos Físicos:</label>
+                    <input type="number" id="input-substeps" value="20" min="1">
+                </div>
+                <div class="control-group">
+                    <label id="lbl-iters" data-i18n-title="t_iters">Iteraciones (Dureza):</label>
+                    <input type="number" id="input-iters" value="3" min="1" max="10">
+                </div>
+            </div>
+        </details>
+
+        <details>
+            <summary id="lbl-advanced" data-i18n-title="t_advanced">Avanzado ⚠️</summary>
+            <div class="control-row">
+                <div class="control-group">
+                    <label id="lbl-fuerzacaida" data-i18n-title="t_fuerzacaida">Fuerza de Caída:</label>
+                    <input type="number" id="input-dropforce" value="0" step="1">
+                </div>
+                <div class="control-group">
+                    <label id="lbl-fps" data-i18n-title="t_fps">FPS Globales:</label>
+                    <input type="number" id="input-fps" value="60" min="1" max="240">
+                </div>
+                <div class="control-group">
+                    <label id="lbl-grav" data-i18n-title="t_grav">Gravedad:</label>
+                    <input type="number" id="input-grav" value="1.0" step="0.1">
+                </div>
+                <div class="control-group">
+                    <label id="lbl-rebote" data-i18n-title="t_rebote">Rebote:</label>
+                    <input type="number" id="input-bounce" value="0.5" step="0.1" min="0" max="1.5">
+                </div>
+            </div>
+        </details>
+        
+        <div class="control-row" style="margin-top: 15px; margin-bottom: -5px;">
+            <button id="btn-reset" class="btn-reset" data-i18n-title="t_btnreset">Restablecer Valores</button>
+        </div>
+
+        <div class="panel-destacado">
+            <div class="control-row">
+                <label class="chk-label" data-i18n-title="t_chkvisual">
+                    <input type="checkbox" id="check-mostrar-calc" style="width:18px; height:18px;">
+                    <span id="lbl-chkvisual">Mostrar progreso visual durante el procesamiento (más lento)</span>
+                </label>
+            </div>
+            <div class="control-row" style="margin-top: 10px;">
+                <label class="chk-label" data-i18n-title="t_chkautocut">
+                    <input type="checkbox" id="check-auto-cut" checked style="width:18px; height:18px;">
+                    <span id="lbl-chkautocut">Detener simulación automáticamente</span>
+                </label>
+                <label class="chk-label" data-i18n-title="t_chkautoframes">
+                    <input type="checkbox" id="check-auto-frames" checked style="width:18px; height:18px;">
+                    <span id="lbl-chkautoframes">Calcular fotogramas automáticamente</span>
+                </label>
+                <div class="control-group" style="max-width: 150px;">
+                    <label id="lbl-frames" data-i18n-title="t_frames">Fotogramas meta:</label>
+                    <input type="number" id="input-target-frames" value="800" min="100" disabled>
+                </div>
+            </div>
+            
+            <div class="control-row" style="margin-top: 15px;">
+                <button id="btn-iniciar" disabled data-i18n-title="t_btniniciar">Iniciar Procesamiento</button>
+                <button id="btn-pause-calc" class="btn-accion" style="flex-grow:0; width:110px;" disabled data-i18n-title="t_btnpausar">Pausar</button>
+                <button id="btn-cancel-calc" class="btn-cancelar" style="flex-grow:0; width:110px;" disabled data-i18n-title="t_btncancelar">Cancelar</button>
+                <button id="btn-pintar" class="btn-accion" disabled data-i18n-title="t_btnpintar">Cortar y Pintar</button>
+            </div>
+
+            <div class="control-row" style="margin-top: 15px; border-top: 1px solid #333; padding-top: 15px;">
+                <div class="control-group" style="max-width: 120px;">
+                    <label id="lbl-vel" style="color:#ccc;" data-i18n-title="t_vel">Velocidad final:</label>
+                    <input type="number" id="input-speed" value="1.0" step="0.1" min="0.1" max="5.0">
+                </div>
+                <button id="btn-play" class="btn-play" disabled data-i18n-title="t_btnplay">Reproducir Simulación</button>
+                <button id="btn-demo" class="btn-demo" data-i18n-title="t_btndemo">Demo 👀</button>
+                <button id="btn-pause-play" class="btn-accion" style="flex-grow:0; width:110px;" disabled data-i18n-title="t_btnpausarplay">Pausar</button>
+            </div>
+            <div class="control-row" style="margin-top: 10px;">
+                <button id="btn-dl" class="btn-dl" disabled data-i18n-title="t_btndl">Descargar Video (.webm)</button>
+                <button id="btn-export" class="btn-purple" disabled data-i18n-title="t_btnexport">Exportar (.json)</button>
+                <button id="btn-import" class="btn-purple" data-i18n-title="t_btnimport">Importar (.json)</button>
+                <input type="file" id="import-input" accept=".json,application/json" style="display: none;">
+            </div>
+        </div>
+    </div>
+
+    <canvas id="simCanvas" width="800" height="600"></canvas>
+    <canvas id="hiddenCanvas" width="800" height="600" style="display: none;"></canvas>
+
+    <div id="estado-container">
+        <div id="estado">Estado: ESPERANDO IMAGEN O JSON</div>
+        <progress id="progreso-calc" value="0" max="100"></progress>
+    </div>
+
+    <script>
+        const translations = {
+            es: {
+                dropzone: "Arrastra una imagen o un archivo .json aquí o haz clic",
+                btnHelp: "Cómo usar",
+                lblDonar: "Donar",
+                lblCantidad: "Cantidad de Partículas:",
+                lblAncho: "Ancho del Contenedor:",
+                lblMapeo: "Modo de Mapeo:",
+                mapCrop: "Recortar (Mantener proporción)",
+                mapStretch: "Estirar (Ajustar a los bordes)",
+                sumFisicas: "Físicas, Rendimiento y Emisión",
+                lblBgColor: "Color de Fondo:",
+                lblPColor: "Color de Partículas (Previo a textura):",
+                lblRandom: "Arcoíris",
+                lblAparicion: "Modo de Emisión:",
+                spNormal: "Lluvia (Toda el área)",
+                spCentro: "Emisión Central",
+                spIzq: "Proyección Izquierda",
+                spDer: "Proyección Derecha",
+                spFuente: "Fuente (Ascendente)",
+                lblDuracion: "Duración de Emisión (s):",
+                lblFuerzaCaida: "Fuerza de Caída:",
+                lblFps: "FPS Globales:",
+                lblSubsteps: "Sub-pasos Físicos:",
+                lblIters: "Iteraciones (Dureza):",
+                lblGrav: "Gravedad:",
+                lblRebote: "Rebote:",
+                lblFuente: "Fuerza de Fuente:",
+                lblAvanzado: "Avanzado ⚠️",
+                chkVisual: "Mostrar progreso visual durante el procesamiento (más lento)",
+                chkAutoCut: "Detener simulación automáticamente",
+                chkAutoFrames: "Calcular fotogramas automáticamente",
+                lblFrames: "Fotogramas meta:",
+                btnIniciar: "Iniciar Procesamiento",
+                btnPausar: "Pausar",
+                btnReanudar: "Reanudar",
+                btnCancelar: "Cancelar",
+                btnReset: "Restablecer Valores",
+                btnPintar: "Cortar y Pintar",
+                lblVel: "Velocidad final:",
+                btnPlay: "Reproducir Simulación",
+                btnDl: "Descargar Video (.webm)",
+                btnExport: "Exportar (.json)",
+                btnImport: "Importar (.json)",
+                estEspera: "Estado: ESPERANDO IMAGEN O JSON",
+                estCargada: "Estado: Imagen cargada. Haz clic en Iniciar Procesamiento.",
+                estPausaCalc: "Estado: PROCESAMIENTO PAUSADO (Fotograma {frame}).",
+                estCancelado: "Estado: Procesamiento cancelado. Memoria liberada.",
+                bgProc: "Procesando en segundo plano...",
+                bgMaxSpeed: "Velocidad máxima activada",
+                estSimulando: "Estado: Procesando a {fps} FPS... Fotograma: {frame} / {stop}",
+                estSimulandoInf: "Estado: Procesando a {fps} FPS... Fotograma: {frame}",
+                estMaxCpu: "Estado: Max CPU. Fotograma: {frame} / {stop}",
+                estMaxCpuInf: "Estado: Max CPU. Fotograma: {frame}",
+                msgListoCanvas1: "¡Procesamiento finalizado!",
+                msgListoCanvas2: "Presiona 'Reproducir Simulación' en los controles.",
+                msgImportSuccess1: "¡Archivo importado con éxito!",
+                msgImportSuccess2: "Presiona 'Reproducir Simulación' en los controles.",
+                estListo: "¡Cálculo finalizado! Reproduce la simulación para ver el resultado.",
+                estRepPausa: "Estado: Reproducción pausada (Fotograma {frame}).",
+                estRep: "Reproduciendo simulación a {fps} FPS...",
+                estRepFin: "Reproducción finalizada. Puedes reproducir de nuevo.",
+                errCors: "Error de lectura de imagen (CORS).",
+                errImport: "Archivo inválido o corrupto.",
+                btnDlWait: "Procesando video, espera...",
+                fileSimulation: "simulacion",
+                
+                t_dropzone: "Haz clic o arrastra una imagen o un archivo JSON exportado.",
+                t_cantidad: "Número total de partículas.",
+                t_ancho: "Ajusta el ancho del área de colisión física.",
+                t_mapeo: "Determina cómo se ajusta la imagen capturada sobre las partículas.",
+                t_summary: "Opciones avanzadas de comportamiento y rendimiento.",
+                t_bgcolor: "Color de fondo para la simulación y el video exportado.",
+                t_pcolor: "Color base de las partículas antes de pintarse con la imagen.",
+                t_random: "Asigna un color aleatorio a cada partícula para evaluar el movimiento caótico interno.",
+                t_aparicion: "Punto y dirección de aparición inicial de las partículas.",
+                t_duracion: "Tiempo en segundos que tardan en aparecer todas las partículas.",
+                t_substeps: "Cantidad de veces que se subdivide un fotograma para calcular físicas precisas. Reducir para más rendimiento, subir para evitar que las partículas se atraviesen.",
+                t_iters: "Repeticiones del algoritmo de colisión para endurecer la montaña de partículas y evitar aplastamientos.",
+                t_fuente: "Fuerza ascendente inicial (Modo Fuente).",
+                t_advanced: "⚠️ Algunas de estas funciones están en beta y no se probaron exhaustivamente. Úsalas bajo tu propio riesgo.",
+                t_fuerzacaida: "Fuerza descendente inicial aplicada al aparecer.",
+                t_fps: "Fotogramas por segundo para el motor de cálculo y el video final.",
+                t_grav: "Fuerza de gravedad global (Un valor de 1.0 equivale a la gravedad realista por defecto).",
+                t_rebote: "Elasticidad de las partículas contra las paredes y entre ellas.",
+                t_chkvisual: "Si se desactiva, la simulación ocultará los gráficos y usará toda la CPU para calcular en segundo plano rapidísimo.",
+                t_chkautocut: "Si se desactiva, el cálculo será infinito en Modo Manual hasta presionar 'Cortar y Pintar'.",
+                t_chkautoframes: "Calcula automáticamente la duración necesaria en base a los segundos de emisión.",
+                t_frames: "Fotograma en el que la simulación se detendrá obligatoriamente.",
+                t_btniniciar: "Inicia el cálculo físico del motor en memoria.",
+                t_btnpausar: "Pausa el cálculo actual.",
+                t_btncancelar: "Detiene y reinicia todo el progreso.",
+                t_btnreset: "Restaura todas las configuraciones a sus valores originales sin borrar la imagen o la memoria.",
+                t_btnpintar: "Aplica la textura de la imagen a las partículas en su posición actual y genera el video.",
+                t_vel: "Multiplicador de velocidad de reproducción del video interactivo.",
+                t_btnplay: "Reproduce la simulación precalculada desde la RAM.",
+                t_btndemo: "Carga y reproduce una simulación de prueba al instante.",
+                t_btnpausarplay: "Pausa la reproducción en tiempo real.",
+                t_btndl: "Exporta la simulación a un archivo .webm local para compartir.",
+                t_btnexport: "Exporta la simulación calculada a un archivo JSON optimizado para cargarla después al instante.",
+                t_btnimport: "Carga un archivo JSON guardado previamente para evitar calcular todo de nuevo.",
+
+                helpContent: `
+                    <h2>Cómo usar K1K Image Determinator</h2>
+                    <p>Bienvenido. Esta herramienta te permite simular físicas de partículas y mapearles una imagen para crear animaciones fluidas pre-renderizadas.</p>
+                    
+                    <div class="help-section">
+                        <h3>Pasos Básicos</h3>
+                        <ol>
+                            <li><strong>Sube una imagen o archivo:</strong> Arrastra tu imagen al recuadro punteado o haz clic para seleccionarla. También puedes arrastrar archivos JSON de proyectos anteriores.</li>
+                            <li><strong>Inicia el cálculo:</strong> Presiona el botón <em>"Iniciar Procesamiento"</em>. El motor físico empezará a calcular matemáticamente dónde cae cada partícula y lo guardará en la memoria RAM.</li>
+                            <li><strong>Cortar y Pintar:</strong> Si tienes el corte automático activado, el sistema se detendrá en el fotograma meta. Si estás en modo manual, presiona <em>"Cortar y Pintar"</em> cuando te guste cómo quedó la montaña de partículas.</li>
+                            <li><strong>Disfruta:</strong> Una vez pintadas, presiona <em>"Reproducir Simulación"</em> para ver el resultado sin lag, o exporta el video <code>.webm</code>.</li>
+                        </ol>
+                    </div>
+
+                    <div class="help-section">
+                        <h3>Exportar / Importar (.json)</h3>
+                        <ul>
+                            <li><strong>Exportar:</strong> Si el procesamiento de tu simulación tomó mucho tiempo y quieres conservar el resultado final, puedes guardarlo usando el botón "Exportar (.json)". El sistema empaquetará los datos crudos de la memoria en formato binario Base64 dentro de un archivo súper liviano.</li>
+                            <li><strong>Importar:</strong> Carga un archivo <code>.json</code> exportado previamente usando el botón "Importar" o simplemente arrastrándolo a la caja superior. El programa inyectará los fotogramas en RAM saltándose todo el procesamiento matemático.</li>
+                        </ul>
+                    </div>
+
+                    <div class="help-section">
+                        <h3>Opciones de Rendimiento y Físicas</h3>
+                        <ul>
+                            <li><strong>Cantidad de Partículas:</strong> Cuantas más pongas, mejor se verá la imagen, pero requerirá más CPU (Rango recomendado: 1000 - 5000).</li>
+                            <li><strong>Modo de Emisión:</strong> Permite elegir desde dónde aparecen las partículas (arriba, fuente desde abajo, proyectadas desde un costado, etc).</li>
+                            <li><strong>Duración de Emisión (s):</strong> Tiempo exacto en segundos que tardan en aparecer todas las partículas elegidas de forma constante.</li>
+                            <li><strong>Sub-pasos Físicos:</strong> Divide cada fotograma en porciones de tiempo más chicas para que los cálculos de colisión sean precisos. Valores altos (20+) evitan que las pelotas atraviesen las paredes a alta velocidad.</li>
+                            <li><strong>Iteraciones (Dureza):</strong> Repeticiones del algoritmo que separa a las partículas entre sí. Subir este valor evita el efecto "gelatina" o que se aplasten con el peso de la montaña.</li>
+                            <li><strong>Mostrar progreso visual:</strong> Desactivarlo es el secreto para la máxima velocidad. Al apagarlo, el procesador calcula los fotogramas sin dibujarlos en pantalla. Aunque cambies de pestaña en el navegador, el cálculo continuará a toda potencia.</li>
+                        </ul>
+                    </div>
+
+                    <div class="help-section">
+                        <h3 style="color:#ff0055;">⚠️ Sección Avanzada</h3>
+                        <p>Los parámetros de la sección Avanzada permiten romper los límites normales de la física de la simulación.</p>
+                        <ul>
+                            <li><strong>FPS Globales:</strong> Cambia la velocidad del motor interno y del video final. Bajar los FPS a menos de 30 puede requerir bajar los <em>Sub-pasos Físicos</em> para mantener la estabilidad del salto temporal.</li>
+                            <li><strong>Gravedad y Rebote:</strong> Modifican las fuerzas absolutas. Una gravedad de 1.0 es el estándar calibrado por defecto. Bajar el rebote hace que el polvo actúe más como arena húmeda.</li>
+                        </ul>
+                    </div>
+                `
+            },
+            en: {
+                dropzone: "Drop an image or .json file here, or click",
+                btnHelp: "How to use",
+                lblDonar: "Donate",
+                lblCantidad: "Particle Count:",
+                lblAncho: "Container Width:",
+                lblMapeo: "Mapping Mode:",
+                mapCrop: "Crop (Maintain aspect ratio)",
+                mapStretch: "Stretch (Fit to edges)",
+                sumFisicas: "Physics, Performance & Emission",
+                lblBgColor: "Background Color:",
+                lblPColor: "Particle Color (Pre-bake):",
+                lblRandom: "Rainbow",
+                lblAparicion: "Emission Mode:",
+                spNormal: "Rain (Full area)",
+                spCentro: "Central Stream",
+                spIzq: "Left Projection",
+                spDer: "Right Projection",
+                spFuente: "Fountain (Upward)",
+                lblDuracion: "Emission Duration (s):",
+                lblFuerzaCaida: "Drop Force:",
+                lblFps: "Global FPS:",
+                lblSubsteps: "Physics Sub-steps:",
+                lblIters: "Iterations (Hardness):",
+                lblGrav: "Gravity:",
+                lblRebote: "Bounciness:",
+                lblFuente: "Fountain Force:",
+                lblAvanzado: "Advanced ⚠️",
+                chkVisual: "Show visual progress during processing (slower)",
+                chkAutoCut: "Stop simulation automatically",
+                chkAutoFrames: "Calculate frames automatically",
+                lblFrames: "Target frames:",
+                btnIniciar: "Start Processing",
+                btnPausar: "Pause",
+                btnReanudar: "Resume",
+                btnCancelar: "Cancel",
+                btnReset: "Reset to Defaults",
+                btnPintar: "Cut and Paint",
+                lblVel: "Playback Speed:",
+                btnPlay: "Play Simulation",
+                btnDl: "Download Video (.webm)",
+                btnExport: "Export (.json)",
+                btnImport: "Import (.json)",
+                estEspera: "Status: WAITING FOR IMAGE OR JSON",
+                estCargada: "Status: Image loaded. Click Start Processing.",
+                estPausaCalc: "Status: PROCESSING PAUSED (Frame {frame}).",
+                estCancelado: "Status: Processing canceled. Memory freed.",
+                bgProc: "Processing in background...",
+                bgMaxSpeed: "Maximum speed engaged",
+                estSimulando: "Status: Processing at {fps} FPS... Frame: {frame} / {stop}",
+                estSimulandoInf: "Status: Processing at {fps} FPS... Frame: {frame}",
+                estMaxCpu: "Status: Max CPU. Frame: {frame} / {stop}",
+                estMaxCpuInf: "Status: Max CPU. Frame: {frame}",
+                msgListoCanvas1: "Processing Complete!",
+                msgListoCanvas2: "Press 'Play Simulation' in the controls.",
+                msgImportSuccess1: "File imported successfully!",
+                msgImportSuccess2: "Press 'Play Simulation' in the controls.",
+                estListo: "Calculation finished! Play the simulation to see the result.",
+                estRepPausa: "Status: Playback paused (Frame {frame}).",
+                estRep: "Playing simulation at {fps} FPS...",
+                estRepFin: "Playback finished. You can play again.",
+                errCors: "Image read error (CORS).",
+                errImport: "Invalid or corrupted file.",
+                btnDlWait: "Processing video, please wait...",
+                fileSimulation: "simulation",
+                
+                t_dropzone: "Click or drag an image or an exported JSON file here.",
+                t_cantidad: "Total number of particles.",
+                t_ancho: "Adjust the physical collision area width.",
+                t_mapeo: "Determines how the captured image is adjusted onto the particles.",
+                t_summary: "Advanced physics and behavior options.",
+                t_bgcolor: "Background color for the simulation and video.",
+                t_pcolor: "Base color of particles before applying the image texture.",
+                t_random: "Assign a random color to each particle to debug chaotic movement.",
+                t_aparicion: "Initial spawn point and direction.",
+                t_duracion: "Time in seconds for all particles to spawn.",
+                t_substeps: "Time subdivisions for precise collision checks. Higher values stop particles from clipping through walls.",
+                t_iters: "Collision resolution repeats. Increase to prevent the particle mountain from squishing like jelly.",
+                t_fuente: "Upward force (Fountain Mode only).",
+                t_advanced: "⚠️ Some of these functions are in beta and have not been properly tested. Use at your own risk.",
+                t_fuerzacaida: "Initial downward force applied on spawn.",
+                t_fps: "Global frames per second for engine and final video.",
+                t_grav: "Global gravity force (A value of 1.0 equals default realistic gravity).",
+                t_rebote: "Elasticity of the particles.",
+                t_chkvisual: "If unchecked, simulation processes much faster invisibly in the background using maximum CPU.",
+                t_chkautocut: "If unchecked, calculation is infinite in Manual Mode until 'Cut and Paint' is clicked.",
+                t_chkautoframes: "Automatically calculates the required duration based on emission seconds.",
+                t_frames: "Exact frame where the simulation will stop.",
+                t_btniniciar: "Starts the physical engine calculation in RAM.",
+                t_btnpausar: "Pauses current calculation.",
+                t_btncancelar: "Stops and resets all progress.",
+                t_btnreset: "Restores all settings to original values without clearing image or memory.",
+                t_btnpintar: "Applies the texture to the particles at their current position and generates the video.",
+                t_vel: "Video playback speed multiplier.",
+                t_btnplay: "Plays the precalculated simulation.",
+                t_btndemo: "Instantly loads and plays a test simulation.",
+                t_btnpausarplay: "Pauses visual playback.",
+                t_btndl: "Exports the simulation to a local .webm file.",
+                t_btnexport: "Exports the baked simulation to an optimized JSON file to load it instantly later.",
+                t_btnimport: "Loads a previously saved JSON file to avoid recalculating.",
+
+                helpContent: `
+                    <h2>How to use K1K Image Determinator</h2>
+                    <p>Welcome. This tool allows you to simulate particle physics and map an image onto them to create smooth, pre-rendered animations.</p>
+                    
+                    <div class="help-section">
+                        <h3>Basic Steps</h3>
+                        <ol>
+                            <li><strong>Upload a file:</strong> Drag your image into the dashed box or click to select it. You can also drop exported JSON files here.</li>
+                            <li><strong>Start Processing:</strong> Click <em>"Start Processing"</em>. The physics engine will mathematically calculate where each particle falls and save it in RAM.</li>
+                            <li><strong>Cut and Paint:</strong> If auto-cut is enabled, the system stops automatically at the target frame. In manual mode, press <em>"Cut and Paint"</em> when you are happy with the particle pile.</li>
+                            <li><strong>Enjoy:</strong> Once painted, press <em>"Play Simulation"</em> to watch the lag-free result, or export the video or project file (.json).</li>
+                        </ol>
+                    </div>
+
+                    <div class="help-section">
+                        <h3>Export / Import (.json)</h3>
+                        <ul>
+                            <li><strong>Export:</strong> If your simulation processing took a long time and you want to keep the final result, you can save it. The system will encode the raw memory arrays into a lightweight JSON file using Base64.</li>
+                            <li><strong>Import:</strong> Load a previously exported <code>.json</code> file. The program will inject the frames directly into RAM, bypassing all mathematical processing. It will be ready to play or download as a video instantly.</li>
+                        </ul>
+                    </div>
+
+                    <div class="help-section">
+                        <h3>Physics and Performance Settings</h3>
+                        <ul>
+                            <li><strong>Particle Count:</strong> More particles mean better image quality, but longer calculation times. (Recommended: 1000 - 5000).</li>
+                            <li><strong>Emission Mode:</strong> Choose the spawn position (e.g. from above, central stream, fountain).</li>
+                            <li><strong>Emission Duration (s):</strong> Exact time it will take for all chosen particles to be spawned.</li>
+                            <li><strong>Physics Sub-steps:</strong> Divides the time of each frame for better accuracy. High values prevent particles from clipping through colliders at high speeds.</li>
+                            <li><strong>Iterations (Hardness):</strong> Collision resolution repeats. High values prevent particles from getting squished at the bottom of the pile.</li>
+                            <li><strong>Show visual progress:</strong> Disabling this is the secret to maximum speed. The screen will stay black and the processor will bake frames at lightspeed in the background. Even if you switch browser tabs, the calculation will continue at full power.</li>
+                        </ul>
+                    </div>
+
+                    <div class="help-section">
+                        <h3 style="color:#ff0055;">⚠️ Advanced Section</h3>
+                        <p>Parameters inside the Advanced section let you break the bounds of normal simulation physics.</p>
+                        <ul>
+                            <li><strong>Global FPS:</strong> Changes the engine and video speed. Lowering FPS below 30 might require lowering <em>Physics Sub-steps</em> to maintain stability.</li>
+                            <li><strong>Gravity and Bounciness:</strong> Modifies absolute forces. 1.0 Gravity is the realistic standard.</li>
+                        </ul>
+                    </div>
+                `
+            }
+        };
+
+        let currentLang = 'es';
+
+        function initLanguage() {
+            let userLang = navigator.language || navigator.userLanguage || "en";
+            currentLang = userLang.toLowerCase().startsWith('es') ? 'es' : 'en';
+            document.getElementById('lang-select').value = currentLang;
+            applyLanguage();
+        }
+
+        document.getElementById('lang-select').addEventListener('change', (e) => {
+            currentLang = e.target.value;
+            applyLanguage();
+            actualizarEstadoUI();
+        });
+
+        function applyLanguage() {
+            const t = translations[currentLang];
+            document.getElementById('btn-help').textContent = t.btnHelp;
+            document.getElementById('lbl-dropzone').textContent = t.dropzone;
+            document.getElementById('drop-zone').title = t.t_dropzone;
+            document.getElementById('lbl-donar').textContent = t.lblDonar;
+            document.getElementById('lbl-cantidad').textContent = t.lblCantidad;
+            document.getElementById('lbl-cantidad').parentElement.title = t.t_cantidad;
+            document.getElementById('lbl-ancho').innerHTML = `${t.lblAncho} <span id="val-ancho">${boxW}</span>px`;
+            document.getElementById('lbl-ancho').parentElement.title = t.t_ancho;
+            document.getElementById('lbl-mapeo').textContent = t.lblMapeo;
+            document.getElementById('lbl-mapeo').parentElement.title = t.t_mapeo;
+            document.getElementById('opt-crop').textContent = t.mapCrop;
+            document.getElementById('opt-stretch').textContent = t.mapStretch;
+            document.getElementById('lbl-summary').textContent = t.sumFisicas;
+            document.getElementById('lbl-summary').parentElement.title = t.t_summary;
+            document.getElementById('lbl-bgcolor').textContent = t.lblBgColor;
+            document.getElementById('lbl-bgcolor').parentElement.title = t.t_bgcolor;
+            document.getElementById('lbl-pcolor').textContent = t.lblPColor;
+            document.getElementById('lbl-pcolor').parentElement.title = t.t_pcolor;
+            document.getElementById('lbl-random').textContent = t.lblRandom;
+            document.getElementById('check-random-color').parentElement.title = t.t_random;
+            document.getElementById('lbl-aparicion').textContent = t.lblAparicion;
+            document.getElementById('lbl-aparicion').parentElement.title = t.t_aparicion;
+            document.getElementById('opt-normal').textContent = t.spNormal;
+            document.getElementById('opt-centro').textContent = t.spCentro;
+            document.getElementById('opt-izq').textContent = t.spIzq;
+            document.getElementById('opt-der').textContent = t.spDer;
+            document.getElementById('opt-fuente').textContent = t.spFuente;
+            document.getElementById('lbl-duracion').textContent = t.lblDuracion;
+            document.getElementById('lbl-duracion').parentElement.title = t.t_duracion;
+            document.getElementById('lbl-substeps').textContent = t.lblSubsteps;
+            document.getElementById('lbl-substeps').parentElement.title = t.t_substeps;
+            document.getElementById('lbl-iters').textContent = t.lblIters;
+            document.getElementById('lbl-iters').parentElement.title = t.t_iters;
+            document.getElementById('lbl-fuente').textContent = t.lblFuente;
+            document.getElementById('lbl-fuente').parentElement.title = t.t_fuente;
+            
+            document.getElementById('lbl-advanced').textContent = t.lblAvanzado;
+            document.getElementById('lbl-advanced').parentElement.title = t.t_advanced;
+            document.getElementById('lbl-fuerzacaida').textContent = t.lblFuerzaCaida;
+            document.getElementById('lbl-fuerzacaida').parentElement.title = t.t_fuerzacaida;
+            document.getElementById('lbl-fps').textContent = t.lblFps;
+            document.getElementById('lbl-fps').parentElement.title = t.t_fps;
+            document.getElementById('lbl-grav').textContent = t.lblGrav;
+            document.getElementById('lbl-grav').parentElement.title = t.t_grav;
+            document.getElementById('lbl-rebote').textContent = t.lblRebote;
+            document.getElementById('lbl-rebote').parentElement.title = t.t_rebote;
+
+            document.getElementById('lbl-chkvisual').textContent = t.chkVisual;
+            document.getElementById('check-mostrar-calc').parentElement.title = t.t_chkvisual;
+            
+            document.getElementById('lbl-chkautocut').textContent = t.chkAutoCut;
+            document.getElementById('check-auto-cut').parentElement.title = t.t_chkautocut;
+            document.getElementById('lbl-chkautoframes').textContent = t.chkAutoFrames;
+            document.getElementById('check-auto-frames').parentElement.title = t.t_chkautoframes;
+            
+            document.getElementById('lbl-frames').textContent = t.lblFrames;
+            document.getElementById('lbl-frames').parentElement.title = t.t_frames;
+            
+            document.getElementById('btn-iniciar').textContent = t.btnIniciar;
+            document.getElementById('btn-iniciar').title = t.t_btniniciar;
+            document.getElementById('btn-pause-calc').textContent = isCalcPaused ? t.btnReanudar : t.btnPausar;
+            document.getElementById('btn-pause-calc').title = t.t_btnpausar;
+            document.getElementById('btn-cancel-calc').textContent = t.btnCancelar;
+            document.getElementById('btn-cancel-calc').title = t.t_btncancelar;
+            document.getElementById('btn-reset').textContent = t.btnReset;
+            document.getElementById('btn-reset').title = t.t_btnreset;
+            document.getElementById('btn-pintar').textContent = t.btnPintar;
+            document.getElementById('btn-pintar').title = t.t_btnpintar;
+            document.getElementById('lbl-vel').textContent = t.lblVel;
+            document.getElementById('lbl-vel').parentElement.title = t.t_vel;
+            document.getElementById('btn-play').textContent = t.btnPlay;
+            document.getElementById('btn-play').title = t.t_btnplay;
+            
+            const btnDemo = document.getElementById('btn-demo');
+            if(btnDemo.style.display !== 'none') {
+                btnDemo.title = t.t_btndemo;
+            }
+            
+            document.getElementById('btn-pause-play').textContent = isPlayingPaused ? t.btnReanudar : t.btnPausar;
+            document.getElementById('btn-pause-play').title = t.t_btnpausarplay;
+            document.getElementById('btn-dl').textContent = t.btnDl;
+            document.getElementById('btn-dl').title = t.t_btndl;
+            document.getElementById('btn-export').textContent = t.btnExport;
+            document.getElementById('btn-export').title = t.t_btnexport;
+            document.getElementById('btn-import').textContent = t.btnImport;
+            document.getElementById('btn-import').title = t.t_btnimport;
+
+            document.getElementById('help-text').innerHTML = t.helpContent;
+        }
+
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const hiddenCanvas = document.createElement('canvas'); 
+        hiddenCanvas.width = 800;
+        hiddenCanvas.height = 600;
+        const hCtx = hiddenCanvas.getContext('2d');
+
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const importInput = document.getElementById('import-input');
+        
+        const btnIniciar = document.getElementById('btn-iniciar');
+        const btnPauseCalc = document.getElementById('btn-pause-calc');
+        const btnCancelCalc = document.getElementById('btn-cancel-calc');
+        const btnReset = document.getElementById('btn-reset');
+        const btnPlay = document.getElementById('btn-play');
+        const btnPausePlay = document.getElementById('btn-pause-play');
+        const btnDl = document.getElementById('btn-dl');
+        const btnExport = document.getElementById('btn-export');
+        const btnImport = document.getElementById('btn-import');
+        const btnPintar = document.getElementById('btn-pintar');
+        const btnHelp = document.getElementById('btn-help');
+        const btnDemo = document.getElementById('btn-demo');
+        const helpModal = document.getElementById('help-modal');
+        const closeModal = document.getElementById('close-modal');
+        
+        const inputCantidad = document.getElementById('input-cantidad');
+        const sliderAncho = document.getElementById('slider-ancho');
+        const valAncho = document.getElementById('val-ancho');
+        const mapMode = document.getElementById('map-mode');
+        const spawnMode = document.getElementById('spawn-mode');
+        
+        const checkMostrarCalc = document.getElementById('check-mostrar-calc');
+        const checkAutoCut = document.getElementById('check-auto-cut');
+        const checkAutoFrames = document.getElementById('check-auto-frames');
+        const inputTargetFrames = document.getElementById('input-target-frames');
+        const inputSpeed = document.getElementById('input-speed');
+        const inputBgColor = document.getElementById('input-bg-color');
+        const inputParticleColor = document.getElementById('input-particle-color');
+        const checkRandomColor = document.getElementById('check-random-color');
+        const progressBar = document.getElementById('progreso-calc');
+        
+        const inputGrav = document.getElementById('input-grav');
+        const inputBounce = document.getElementById('input-bounce');
+        const inputFountain = document.getElementById('input-fountain');
+        const inputDropForce = document.getElementById('input-dropforce');
+        const inputSubsteps = document.getElementById('input-substeps');
+        const inputIters = document.getElementById('input-iters');
+        const inputSpawnTime = document.getElementById('input-spawntime');
+        const inputFPS = document.getElementById('input-fps');
+
+        const displayEstado = document.getElementById('estado');
+
+        let currentImage = null;
+        let allBalls = [];
+        let collidableBalls = []; 
+        let animationId;
+        let timeoutId; 
+        
+        let currentFrame = 0;
+        let totalSpawnFrames = 0;
+        let stopFrame = Infinity; 
+        
+        let isCalcPaused = false;
+        let isPlayingPaused = false;
+        let isCalculating = false;
+        let estadoStr = 'ESPERANDO';
+        
+        let renderFrames = []; 
+        let playbackIndex = 0;
+        let videoBlob = null;
+        let isVideoReady = false; 
+        let recordingInterval = null;
+        let mediaRecorder = null; 
+        let wasShowingVisual = false;
+        let demoData = null;
+        
+        const physicsHz = 60; 
+        let env = { friction: 0.995 };
+        let simSpeed = 1.0; 
+        
+        let targetFPS = parseInt(inputFPS.value) || 60;
+        let frameInterval = 1000 / targetFPS;
+        let lastTime = 0;
+        let lastPlaybackTime = 0;
+        
+        let boxW = 400; 
+        let wallLeft = (canvas.width - boxW) / 2;
+        let wallRight = wallLeft + boxW;
+        let floorY = canvas.height - 20;
+        let particleRadius = 5;
+
+        function encodeF32(f32array) {
+            let u8 = new Uint8Array(f32array.buffer);
+            let str = '';
+            for (let i = 0; i < u8.length; i++) {
+                str += String.fromCharCode(u8[i]);
+            }
+            return btoa(str);
+        }
+
+        function decodeF32(b64) {
+            let str = atob(b64);
+            let u8 = new Uint8Array(str.length);
+            for (let i = 0; i < str.length; i++) {
+                u8[i] = str.charCodeAt(i);
+            }
+            return new Float32Array(u8.buffer);
+        }
+
+        fetch('demo.json')
+            .then(r => {
+                if (r.ok) return r.json();
+                throw new Error('No demo');
+            })
+            .then(data => {
+                demoData = data;
+                btnDemo.style.display = 'block';
+                btnDemo.title = translations[currentLang].t_btndemo;
+            })
+            .catch(e => { });
+
+        btnDemo.addEventListener('click', () => {
+            if (demoData) procesarJSON(demoData);
+        });
+
+        btnHelp.addEventListener('click', () => helpModal.style.display = 'flex');
+        closeModal.addEventListener('click', () => helpModal.style.display = 'none');
+        window.addEventListener('click', (e) => { if (e.target === helpModal) helpModal.style.display = 'none'; });
+
+        function actualizarEstadoUI() {
+            const t = translations[currentLang];
+            let color = "#aaa";
+            let texto = "";
+
+            switch (estadoStr) {
+                case 'ESPERANDO': 
+                    texto = currentImage ? t.estCargada : t.estEspera; 
+                    break;
+                case 'PAUSADO_CALC':
+                    texto = t.estPausaCalc.replace("{frame}", currentFrame);
+                    color = "#ffaa00";
+                    break;
+                case 'CANCELADO':
+                    texto = t.estCancelado;
+                    color = "#cc0000";
+                    break;
+                case 'SIMULANDO':
+                case 'MAXCPU':
+                    color = estadoStr === 'MAXCPU' ? "#8c00ff" : "#aaa";
+                    if (stopFrame !== Infinity) {
+                        texto = t.estSimulando.replace("{fps}", targetFPS).replace("{frame}", currentFrame).replace("{stop}", stopFrame);
+                    } else {
+                        texto = t.estSimulandoInf.replace("{fps}", targetFPS).replace("{frame}", currentFrame);
+                    }
+                    break;
+                case 'LISTO':
+                    texto = t.estListo;
+                    color = "#00adb5";
+                    break;
+                case 'PAUSADO_REP':
+                    texto = t.estRepPausa.replace("{frame}", Math.floor(playbackIndex));
+                    color = "#ffaa00";
+                    break;
+                case 'REPRODUCIENDO':
+                    texto = t.estRep.replace("{fps}", targetFPS);
+                    color = "#ff0055";
+                    break;
+                case 'FIN_REP':
+                    texto = t.estRepFin;
+                    color = "#00adb5";
+                    break;
+            }
+            displayEstado.textContent = texto;
+            displayEstado.style.color = color;
+            
+            if (estadoStr === 'SIMULANDO' || estadoStr === 'MAXCPU' || estadoStr === 'PAUSADO_CALC') {
+                if (stopFrame !== Infinity) {
+                    progressBar.style.display = 'block';
+                    progressBar.max = stopFrame;
+                    progressBar.value = currentFrame;
+                } else {
+                    progressBar.style.display = 'none';
+                }
+            } else {
+                progressBar.style.display = 'none';
+            }
+        }
+
+        function updateTargetFrames() {
+            let isAutoCut = checkAutoCut.checked;
+            let isAutoFrames = checkAutoFrames.checked;
+            
+            checkAutoFrames.disabled = !isAutoCut;
+
+            if (isAutoCut) {
+                if (isAutoFrames) {
+                    let duration = parseFloat(inputSpawnTime.value) || 0;
+                    inputTargetFrames.value = Math.max(300, duration * 80);
+                    inputTargetFrames.disabled = true;
+                } else {
+                    inputTargetFrames.disabled = false;
+                }
+            } else {
+                inputTargetFrames.disabled = true; 
+            }
+        }
+        
+        inputSpawnTime.addEventListener('input', updateTargetFrames);
+        checkAutoCut.addEventListener('change', updateTargetFrames);
+        checkAutoFrames.addEventListener('change', updateTargetFrames);
+
+        btnReset.addEventListener('click', () => {
+            inputCantidad.value = 2000;
+            sliderAncho.value = 400;
+            valAncho.textContent = 400;
+            mapMode.value = 'crop';
+            inputBgColor.value = '#050505';
+            inputParticleColor.value = '#ffffff';
+            checkRandomColor.checked = false;
+            inputParticleColor.disabled = false;
+            spawnMode.value = 'fuente';
+            inputSpawnTime.value = 10;
+            inputDropForce.value = 0;
+            inputFPS.value = 60;
+            inputSubsteps.value = 20;
+            inputIters.value = 3;
+            inputGrav.value = 1.0;
+            inputBounce.value = 0.5;
+            inputFountain.value = 15;
+            checkMostrarCalc.checked = false;
+            checkAutoCut.checked = true;
+            checkAutoFrames.checked = true;
+            inputSpeed.value = 1.0;
+            
+            boxW = 400;
+            wallLeft = (canvas.width - boxW) / 2;
+            wallRight = wallLeft + boxW;
+            targetFPS = 60;
+            frameInterval = 1000 / targetFPS;
+            
+            updateTargetFrames();
+            
+            if (allBalls.length === 0 && !isCalculating && estadoStr !== 'LISTO') {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                dibujarFondoYParedes(ctx);
+            }
+        });
+
+        checkRandomColor.addEventListener('change', (e) => {
+            inputParticleColor.disabled = e.target.checked;
+        });
+
+        inputBgColor.addEventListener('input', (e) => {
+            if (allBalls.length === 0 && !isCalculating && estadoStr !== 'LISTO') {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                dibujarFondoYParedes(ctx);
+            }
+        });
+
+        sliderAncho.addEventListener('input', (e) => {
+            boxW = parseInt(e.target.value);
+            document.getElementById('val-ancho').textContent = boxW;
+            wallLeft = (canvas.width - boxW) / 2;
+            wallRight = wallLeft + boxW;
+            if (allBalls.length === 0 && !isCalculating && estadoStr !== 'LISTO') {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                dibujarFondoYParedes(ctx);
+            }
+        });
+
+        inputFPS.addEventListener('change', (e) => {
+            targetFPS = parseInt(e.target.value) || 60;
+            frameInterval = 1000 / targetFPS;
+        });
+
+        checkMostrarCalc.addEventListener('change', (e) => {
+            if (!e.target.checked && isCalculating && !isCalcPaused) {
+                wasShowingVisual = false;
+                estadoStr = 'MAXCPU';
+                actualizarEstadoUI();
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                dibujarFondoYParedes(ctx);
+            } else if (e.target.checked && isCalculating && !isCalcPaused) {
+                wasShowingVisual = true;
+                estadoStr = 'SIMULANDO';
+                actualizarEstadoUI();
+            }
+        });
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => e.preventDefault());
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            if (e.dataTransfer.files.length > 0) handleFileSelection(e.dataTransfer.files[0]);
+        });
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) handleFileSelection(e.target.files[0]);
+            e.target.value = '';
+        });
+
+        function handleFileSelection(file) {
+            if (file.name.toLowerCase().endsWith('.json') || file.type === 'application/json') {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    try {
+                        const data = JSON.parse(ev.target.result);
+                        procesarJSON(data);
+                    } catch(err) {
+                        alert(translations[currentLang].errImport);
+                    }
+                };
+                reader.readAsText(file);
+            } else if (file.type.startsWith('image/')) {
+                cargarImagen(file);
+            } else {
+                alert(translations[currentLang].errImport);
+            }
+        }
+
+        function cargarImagen(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    currentImage = img;
+                    btnIniciar.disabled = false;
+                    estadoStr = 'ESPERANDO';
+                    actualizarEstadoUI();
+                    
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    dibujarFondoYParedes(ctx);
+                    const scale = Math.min(canvas.width / img.width, canvas.height / img.height) * 0.4;
+                    ctx.globalAlpha = 0.3;
+                    ctx.drawImage(img, (canvas.width - img.width * scale) / 2, (canvas.height - img.height * scale) / 2, img.width * scale, img.height * scale);
+                    ctx.globalAlpha = 1.0;
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        let seed = 42;
+        function random() {
+            let x = Math.sin(seed++) * 10000;
+            return x - Math.floor(x);
+        }
+
+        class Ball {
+            constructor(x, y, vx, vy, radius, bounce, canCollide, spawnFrame, color) {
+                this.x = x;
+                this.y = y;
+                this.vx = vx;
+                this.vy = vy;
+                this.radius = radius;
+                this.mass = 10;
+                this.bounce = bounce;
+                this.canCollide = canCollide;
+                this.color = color; 
+                this.spawnFrame = spawnFrame;
+                this.isActive = false;
+            }
+
+            update(dt, gravity) {
+                this.vy += gravity * dt;
+                this.vx *= Math.pow(env.friction, dt);
+                this.vy *= Math.pow(env.friction, dt);
+                this.x += this.vx * dt;
+                this.y += this.vy * dt;
+
+                if (!this.canCollide && this.vy > 0) this.canCollide = true;
+            }
+
+            constrain() {
+                if (this.y > floorY - this.radius) {
+                    this.y = floorY - this.radius;
+                    this.vy *= -this.bounce;
+                    this.vx *= 0.8; 
+                }
+                if (this.x < wallLeft + this.radius) {
+                    this.x = wallLeft + this.radius;
+                    this.vx *= -this.bounce;
+                }
+                if (this.x > wallRight - this.radius) {
+                    this.x = wallRight - this.radius;
+                    this.vx *= -this.bounce;
+                }
+            }
+
+            draw(context = ctx) {
+                context.beginPath();
+                context.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                context.fillStyle = this.color;
+                context.fill();
+            }
+        }
+
+        function solveCollisions() {
+            let count = 0;
+            for (let i = 0; i < allBalls.length; i++) {
+                if (allBalls[i].isActive && allBalls[i].canCollide) {
+                    collidableBalls[count++] = allBalls[i];
+                }
+            }
+            collidableBalls.length = count;
+            collidableBalls.sort((a, b) => a.x - b.x);
+
+            for (let i = 0; i < count; i++) {
+                let b1 = collidableBalls[i];
+                for (let j = i + 1; j < count; j++) {
+                    let b2 = collidableBalls[j];
+                    
+                    let dx = b2.x - b1.x;
+                    if (dx > b1.radius + b2.radius) break; 
+
+                    let dy = b2.y - b1.y;
+                    let minDist = b1.radius + b2.radius;
+                    let distSq = dx * dx + dy * dy;
+
+                    if (distSq < minDist * minDist && distSq > 0) {
+                        let dist = Math.sqrt(distSq);
+                        let overlap = minDist - dist;
+                        let nx = dx / dist;
+                        let ny = dy / dist;
+                        
+                        let im1 = 1 / b1.mass;
+                        let im2 = 1 / b2.mass;
+                        let sum_im = im1 + im2;
+                        let r1 = im1 / sum_im;
+                        let r2 = im2 / sum_im;
+
+                        b1.x -= nx * overlap * r1;
+                        b1.y -= ny * overlap * r1;
+                        b2.x += nx * overlap * r2;
+                        b2.y += ny * overlap * r2;
+
+                        let kx = b1.vx - b2.vx;
+                        let ky = b1.vy - b2.vy;
+                        let p = 2.0 * (nx * kx + ny * ky) / sum_im;
+                        
+                        let bounce = Math.min(b1.bounce, b2.bounce);
+                        b1.vx -= p * im1 * nx * bounce;
+                        b1.vy -= p * im1 * ny * bounce;
+                        b2.vx += p * im2 * nx * bounce;
+                        b2.vy += p * im2 * ny * bounce;
+                    }
+                }
+            }
+        }
+
+        function dibujarFondoYParedes(context) {
+            context.fillStyle = inputBgColor.value;
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            context.strokeStyle = '#2e2e2e';
+            context.lineWidth = 2;
+            context.beginPath();
+            context.moveTo(wallLeft, 0);
+            context.lineTo(wallLeft, floorY);
+            context.lineTo(wallRight, floorY);
+            context.lineTo(wallRight, 0);
+            context.stroke();
+        }
+
+        btnPauseCalc.addEventListener('click', () => {
+            isCalcPaused = !isCalcPaused;
+            btnPauseCalc.textContent = isCalcPaused ? translations[currentLang].btnReanudar : translations[currentLang].btnPausar;
+            
+            if (isCalcPaused) {
+                estadoStr = 'PAUSADO_CALC';
+                actualizarEstadoUI();
+            } else {
+                lastTime = 0; 
+                estadoStr = wasShowingVisual ? 'SIMULANDO' : 'MAXCPU';
+                actualizarEstadoUI();
+                
+                if (wasShowingVisual) {
+                    requestAnimationFrame(animarCalculo);
+                } else {
+                    timeoutId = setTimeout(() => animarCalculo(performance.now()), 0);
+                }
+            }
+        });
+
+        btnCancelCalc.addEventListener('click', () => {
+            isCalcPaused = false;
+            isCalculating = false;
+            estadoStr = 'CANCELADO';
+            actualizarEstadoUI();
+            cancelAnimationFrame(animationId);
+            clearTimeout(timeoutId);
+            
+            allBalls = [];
+            collidableBalls = [];
+            renderFrames = [];
+            
+            btnIniciar.disabled = false;
+            btnPauseCalc.disabled = true;
+            btnCancelCalc.disabled = true;
+            btnPintar.disabled = true;
+            btnPauseCalc.textContent = translations[currentLang].btnPausar;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            dibujarFondoYParedes(ctx);
+        });
+
+        btnIniciar.addEventListener('click', () => {
+            cancelAnimationFrame(animationId);
+            clearTimeout(timeoutId);
+            if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
+            if (recordingInterval) clearInterval(recordingInterval);
+            
+            allBalls = [];
+            collidableBalls = [];
+            renderFrames = [];
+            seed = 42; 
+            currentFrame = 0;
+            lastTime = 0;
+            
+            isCalculating = true;
+            isCalcPaused = false;
+            isVideoReady = false;
+            wasShowingVisual = checkMostrarCalc.checked;
+            estadoStr = wasShowingVisual ? 'SIMULANDO' : 'MAXCPU';
+            
+            btnPauseCalc.textContent = translations[currentLang].btnPausar;
+            btnIniciar.disabled = true;
+            btnPauseCalc.disabled = false;
+            btnCancelCalc.disabled = false;
+            btnPlay.disabled = true;
+            btnPausePlay.disabled = true;
+            btnDl.disabled = true;
+            btnExport.disabled = true;
+            btnPintar.disabled = false;
+            
+            const count = parseInt(inputCantidad.value) || 1000;
+            const mode = spawnMode.value;
+            const userBounce = parseFloat(inputBounce.value) || 0.5;
+            const fountainF = parseFloat(inputFountain.value) || 15;
+            const dropForce = parseFloat(inputDropForce.value) || 0;
+            const spawnDuration = parseFloat(inputSpawnTime.value) || 0;
+            
+            targetFPS = parseInt(inputFPS.value) || 60;
+            frameInterval = 1000 / targetFPS;
+            
+            totalSpawnFrames = spawnDuration * targetFPS; 
+            
+            if (checkAutoCut.checked) {
+                stopFrame = parseInt(inputTargetFrames.value) || 400; 
+            } else {
+                stopFrame = Infinity; 
+            }
+            
+            let targetArea = boxW * 400 * 0.7; 
+            particleRadius = Math.max(1.5, Math.sqrt(targetArea / count) / 2);
+
+            let cols = Math.max(1, Math.floor(boxW / (particleRadius * 2.2)));
+            let roofY = floorY - 600; 
+            
+            const isRandomColor = checkRandomColor.checked;
+            const baseColor = inputParticleColor.value;
+            
+            for (let i = 0; i < count; i++) {
+                let px, py, vx, vy, canCollide;
+                let sFrame = totalSpawnFrames > 0 ? Math.floor((i / count) * totalSpawnFrames) : 0;
+                
+                if (mode === 'normal') {
+                    let col = i % cols;
+                    px = wallLeft + particleRadius + (col * particleRadius * 2.2);
+                    py = roofY - (random() * 50); 
+                    vx = (random() - 0.5) * 4;
+                    vy = (random() * 2) + dropForce; 
+                    canCollide = true;
+                } 
+                else if (mode === 'chorroCentral') {
+                    let centerX = wallLeft + (boxW / 2);
+                    px = centerX + (random() - 0.5) * (particleRadius * 6);
+                    py = roofY - (random() * 50);
+                    vx = (random() - 0.5) * 2;
+                    vy = (random() * 2) + dropForce;
+                    canCollide = true;
+                }
+                else if (mode === 'olaIzq') {
+                    px = wallLeft + particleRadius + (random() * 10);
+                    py = roofY - (random() * 50);
+                    vx = (random() * 8) + 2; 
+                    vy = ((random() - 0.5) * 2) + dropForce;
+                    canCollide = true;
+                }
+                else if (mode === 'olaDer') {
+                    px = wallRight - particleRadius - (random() * 10);
+                    py = roofY - (random() * 50);
+                    vx = (random() * -8) - 2; 
+                    vy = ((random() - 0.5) * 2) + dropForce;
+                    canCollide = true;
+                }
+                else if (mode === 'fuente') {
+                    let centerX = wallLeft + (boxW / 2);
+                    px = centerX + (random() - 0.5) * (boxW * 0.05); 
+                    py = floorY - particleRadius; 
+                    vx = (random() - 0.5) * (boxW * 0.015); 
+                    vy = -fountainF - (random() * 3); 
+                    canCollide = false; 
+                }
+                
+                let pColor = isRandomColor ? `hsl(${Math.random() * 360}, 100%, 50%)` : baseColor;
+                allBalls.push(new Ball(px, py, vx, vy, particleRadius, userBounce, canCollide, sFrame, pColor));
+            }
+
+            if (!wasShowingVisual) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                dibujarFondoYParedes(ctx);
+            }
+
+            actualizarEstadoUI();
+            
+            if (wasShowingVisual) {
+                animationId = requestAnimationFrame(animarCalculo);
+            } else {
+                timeoutId = setTimeout(() => animarCalculo(performance.now()), 0);
+            }
+        });
+
+        function animarCalculo(time) {
+            if (isCalcPaused || !isCalculating) return;
+
+            if (!lastTime) lastTime = time;
+            let dtReal = time - lastTime;
+            
+            let showVisual = checkMostrarCalc.checked;
+            let framesToProcess = 1;
+            
+            if (showVisual) {
+                if (dtReal < frameInterval) {
+                    animationId = requestAnimationFrame(animarCalculo);
+                    return;
+                }
+                framesToProcess = Math.floor(dtReal / frameInterval);
+                if (framesToProcess > 5) framesToProcess = 5; 
+                lastTime = time - (dtReal % frameInterval);
+            } else {
+                framesToProcess = 30; 
+                lastTime = time; 
+            }
+
+            let startTime = performance.now();
+            let processComplete = false;
+
+            let currentSubsteps = parseInt(inputSubsteps.value) || 15;
+            let currentGravity = (parseFloat(inputGrav.value) || 1.0) * 0.3;
+            let collisionIters = parseInt(inputIters.value) || 2;
+            let timeScale = 60 / targetFPS; 
+            let dt = (simSpeed * timeScale) / currentSubsteps;
+
+            let f = 0;
+            while (true) {
+                currentFrame++;
+                
+                for (let b of allBalls) {
+                    if (!b.isActive && currentFrame >= b.spawnFrame) b.isActive = true;
+                }
+
+                for (let step = 0; step < currentSubsteps; step++) {
+                    for (let b of allBalls) { 
+                        if (!b.isActive) continue;
+                        b.update(dt, currentGravity);
+                        b.constrain();
+                    }
+                    for (let iter = 0; iter < collisionIters; iter++) {
+                        solveCollisions();
+                        for (let b of allBalls) { if (b.isActive) b.constrain(); }
+                    }
+                }
+
+                let frameData = new Float32Array(allBalls.length * 2);
+                for (let j = 0; j < allBalls.length; j++) {
+                    frameData[j * 2] = allBalls[j].isActive ? allBalls[j].x : -9999;
+                    frameData[j * 2 + 1] = allBalls[j].y;
+                }
+                renderFrames.push(frameData);
+
+                if (checkAutoCut.checked && currentFrame >= stopFrame) {
+                    processComplete = true;
+                    break;
+                }
+
+                f++;
+                if (showVisual && f >= framesToProcess) break;
+                if (!showVisual && performance.now() - startTime > 15) break; 
+            }
+
+            if (processComplete) {
+                ejecutarPintado();
+                return; 
+            }
+
+            if (showVisual) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                dibujarFondoYParedes(ctx);
+                for (let b of allBalls) { if (b.isActive) b.draw(ctx); }
+            }
+            
+            actualizarEstadoUI();
+            
+            if (showVisual) {
+                animationId = requestAnimationFrame(animarCalculo);
+            } else {
+                timeoutId = setTimeout(() => animarCalculo(performance.now()), 0);
+            }
+        }
+
+        function ejecutarPintado() {
+            cancelAnimationFrame(animationId);
+            clearTimeout(timeoutId);
+            isCalculating = false;
+            estadoStr = 'LISTO';
+            actualizarEstadoUI();
+            
+            let minX = canvas.width, maxX = 0, minY = canvas.height, maxY = 0;
+            for (let b of allBalls) {
+                if (!b.isActive) continue;
+                if (b.x < minX) minX = b.x;
+                if (b.x > maxX) maxX = b.x;
+                if (b.y < minY) minY = b.y;
+                if (b.y > maxY) maxY = b.y;
+            }
+
+            minX -= particleRadius; maxX += particleRadius;
+            minY -= particleRadius; maxY += particleRadius;
+            let pileW = maxX - minX;
+            let pileH = maxY - minY;
+
+            const offCanvas = document.createElement('canvas');
+            const offCtx = offCanvas.getContext('2d');
+            offCanvas.width = Math.ceil(pileW);
+            offCanvas.height = Math.ceil(pileH);
+            
+            let mode = mapMode.value;
+
+            if (mode === 'stretch') {
+                offCtx.drawImage(currentImage, 0, 0, pileW, pileH);
+            } else {
+                let imgAspect = currentImage.width / currentImage.height;
+                let pileAspect = pileW / pileH;
+                let drawW, drawH, drawX, drawY;
+
+                if (imgAspect > pileAspect) {
+                    drawH = pileH;
+                    drawW = currentImage.width * (pileH / currentImage.height);
+                    drawX = (pileW - drawW) / 2;
+                    drawY = 0;
+                } else {
+                    drawW = pileW;
+                    drawH = currentImage.height * (pileW / currentImage.width);
+                    drawX = 0;
+                    drawY = (pileH - drawH) / 2;
+                }
+                offCtx.drawImage(currentImage, drawX, drawY, drawW, drawH);
+            }
+            
+            let imgData;
+            try {
+                imgData = offCtx.getImageData(0, 0, pileW, pileH).data;
+            } catch(e) {
+                displayEstado.textContent = translations[currentLang].errCors; return;
+            }
+
+            for (let b of allBalls) {
+                if (!b.isActive) continue;
+                let relX = Math.floor(b.x - minX);
+                let relY = Math.floor(b.y - minY);
+
+                if (relX >= 0 && relX < pileW && relY >= 0 && relY < pileH) {
+                    let i = (relY * Math.ceil(pileW) + relX) * 4;
+                    if (imgData[i+3] > 10) {
+                        b.color = `rgb(${imgData[i]},${imgData[i+1]},${imgData[i+2]})`;
+                    }
+                }
+            }
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            dibujarFondoYParedes(ctx);
+            
+            ctx.fillStyle = "#00adb5";
+            ctx.font = "bold 24px 'Segoe UI'";
+            ctx.textAlign = "center";
+            ctx.fillText(translations[currentLang].msgListoCanvas1, canvas.width/2, canvas.height/2 - 15);
+            ctx.font = "16px 'Segoe UI'";
+            ctx.fillStyle = "#ccc";
+            ctx.fillText(translations[currentLang].msgListoCanvas2, canvas.width/2, canvas.height/2 + 15);
+            
+            btnPintar.disabled = true;
+            btnPauseCalc.disabled = true;
+            btnCancelCalc.disabled = true;
+            
+            btnIniciar.disabled = false;
+            btnPlay.disabled = false;
+            btnDl.disabled = false; 
+            btnExport.disabled = false;
+
+            grabarVideoFondoNinja();
+        }
+
+        btnPintar.addEventListener('click', ejecutarPintado);
+
+        function procesarJSON(data) {
+            try {
+                targetFPS = data.fps;
+                inputFPS.value = targetFPS;
+                frameInterval = 1000 / targetFPS;
+                
+                inputBgColor.value = data.bg;
+                
+                boxW = data.boxW;
+                sliderAncho.value = boxW;
+                document.getElementById('val-ancho').textContent = boxW;
+                wallLeft = (canvas.width - boxW) / 2;
+                wallRight = wallLeft + boxW;
+                
+                particleRadius = data.radius;
+                
+                allBalls = data.colors.map(c => {
+                    let b = new Ball(0,0,0,0, particleRadius, 0, false, 0, c);
+                    b.isActive = true;
+                    return b;
+                });
+                
+                renderFrames = data.frames.map(b64 => decodeF32(b64));
+                
+                cancelAnimationFrame(animationId);
+                clearTimeout(timeoutId);
+                isCalculating = false;
+                isCalcPaused = false;
+                isPlayingPaused = false;
+                playbackIndex = 0;
+                
+                estadoStr = 'LISTO';
+                actualizarEstadoUI();
+                
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                dibujarFondoYParedes(ctx);
+                
+                ctx.fillStyle = "#00adb5";
+                ctx.font = "bold 24px 'Segoe UI'";
+                ctx.textAlign = "center";
+                ctx.fillText(translations[currentLang].msgImportSuccess1, canvas.width/2, canvas.height/2 - 15);
+                ctx.font = "16px 'Segoe UI'";
+                ctx.fillStyle = "#ccc";
+                ctx.fillText(translations[currentLang].msgImportSuccess2, canvas.width/2, canvas.height/2 + 15);
+                
+                btnIniciar.disabled = false;
+                btnPauseCalc.disabled = true;
+                btnCancelCalc.disabled = true;
+                btnPintar.disabled = true;
+                btnPlay.disabled = false;
+                btnPausePlay.disabled = true;
+                btnDl.disabled = false;
+                btnExport.disabled = false;
+                
+                grabarVideoFondoNinja();
+            } catch(err) {
+                alert(translations[currentLang].errImport);
+            }
+        }
+
+        function grabarVideoFondoNinja() {
+            isVideoReady = false;
+            
+            const stream = hiddenCanvas.captureStream(targetFPS); 
+            mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm', videoBitsPerSecond: 8000000 });
+            let chunks = [];
+            
+            mediaRecorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+            mediaRecorder.onstop = () => {
+                videoBlob = new Blob(chunks, { type: 'video/webm' });
+                isVideoReady = true;
+            };
+            
+            mediaRecorder.start();
+
+            let recIndex = 0;
+            recordingInterval = setInterval(() => {
+                if (recIndex >= renderFrames.length) {
+                    clearInterval(recordingInterval);
+                    mediaRecorder.stop();
+                    return;
+                }
+
+                hCtx.clearRect(0, 0, hiddenCanvas.width, hiddenCanvas.height);
+                dibujarFondoYParedes(hCtx);
+                
+                let data = renderFrames[recIndex];
+                for (let j = 0; j < allBalls.length; j++) {
+                    let posX = data[j * 2];
+                    let posY = data[j * 2 + 1];
+                    if (posX !== -9999) {
+                        hCtx.beginPath();
+                        hCtx.arc(posX, posY, allBalls[j].radius, 0, Math.PI * 2);
+                        hCtx.fillStyle = allBalls[j].color;
+                        hCtx.fill();
+                    }
+                }
+                recIndex++;
+            }, 1000 / targetFPS); 
+        }
+
+        btnPausePlay.addEventListener('click', () => {
+            isPlayingPaused = !isPlayingPaused;
+            btnPausePlay.textContent = isPlayingPaused ? translations[currentLang].btnReanudar : translations[currentLang].btnPausar;
+            
+            if (isPlayingPaused) {
+                estadoStr = 'PAUSADO_REP';
+                actualizarEstadoUI();
+            } else {
+                lastPlaybackTime = 0; 
+                estadoStr = 'REPRODUCIENDO';
+                actualizarEstadoUI();
+                requestAnimationFrame(animarPlayback);
+            }
+        });
+
+        btnPlay.addEventListener('click', () => {
+            cancelAnimationFrame(animationId);
+            playbackIndex = 0;
+            lastPlaybackTime = 0;
+            isPlayingPaused = false;
+            
+            btnPausePlay.disabled = false;
+            btnPausePlay.textContent = translations[currentLang].btnPausar;
+            
+            estadoStr = 'REPRODUCIENDO';
+            actualizarEstadoUI();
+            requestAnimationFrame(animarPlayback);
+        });
+
+        function animarPlayback(time) {
+            if (isPlayingPaused) return;
+
+            if (!lastPlaybackTime) lastPlaybackTime = time;
+            let dtReal = time - lastPlaybackTime;
+
+            let speedMult = parseFloat(inputSpeed.value) || 1.0;
+            let framesAvanzar = (dtReal / (1000/targetFPS)) * speedMult;
+            
+            playbackIndex += framesAvanzar;
+            lastPlaybackTime = time;
+
+            let intIndex = Math.floor(playbackIndex);
+
+            if (intIndex < renderFrames.length) {
+                let data = renderFrames[intIndex];
+                
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                dibujarFondoYParedes(ctx);
+
+                for (let j = 0; j < allBalls.length; j++) {
+                    let posX = data[j * 2];
+                    let posY = data[j * 2 + 1];
+                    
+                    if (posX !== -9999) { 
+                        ctx.beginPath();
+                        ctx.arc(posX, posY, allBalls[j].radius, 0, Math.PI * 2);
+                        ctx.fillStyle = allBalls[j].color; 
+                        ctx.fill();
+                    }
+                }
+
+                animationId = requestAnimationFrame(animarPlayback);
+            } 
+            else {
+                estadoStr = 'FIN_REP';
+                actualizarEstadoUI();
+                btnPausePlay.disabled = true;
+            }
+        }
+
+        btnDl.addEventListener('click', () => {
+            if (!isVideoReady) {
+                let prevText = btnDl.textContent;
+                btnDl.textContent = translations[currentLang].btnDlWait;
+                setTimeout(() => {
+                    if (btnDl.textContent === translations[currentLang].btnDlWait) {
+                        btnDl.textContent = prevText;
+                    }
+                }, 1500);
+                return;
+            }
+            let url = URL.createObjectURL(videoBlob);
+            let a = document.createElement('a');
+            a.href = url;
+            a.download = translations[currentLang].fileSimulation + '.webm';
+            a.click();
+        });
+
+        btnExport.addEventListener('click', async () => {
+            const data = {
+                fps: targetFPS,
+                bg: inputBgColor.value,
+                boxW: boxW,
+                radius: particleRadius,
+                colors: allBalls.map(b => b.color),
+                frames: renderFrames.map(f => encodeF32(f))
+            };
+            const jsonStr = JSON.stringify(data);
+            
+            try {
+                if (window.showSaveFilePicker) {
+                    const handle = await window.showSaveFilePicker({
+                        suggestedName: translations[currentLang].fileSimulation + '.json',
+                        types: [{
+                            description: 'JSON File',
+                            accept: {'application/json': ['.json']}
+                        }]
+                    });
+                    const writable = await handle.createWritable();
+                    await writable.write(jsonStr);
+                    await writable.close();
+                } else {
+                    const blob = new Blob([jsonStr], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = translations[currentLang].fileSimulation + '.json';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                }
+            } catch (e) {
+                // Falla silenciosa si el usuario cancela la ventana de guardado
+            }
+        });
+
+        btnImport.addEventListener('click', () => {
+            importInput.click();
+        });
+
+        importInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                try {
+                    const data = JSON.parse(ev.target.result);
+                    procesarJSON(data);
+                } catch(err) {
+                    alert(translations[currentLang].errImport);
+                }
+            };
+            reader.readAsText(file);
+            e.target.value = ''; 
+        });
+
+        initLanguage();
+        updateTargetFrames();
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        dibujarFondoYParedes(ctx);
+
+    </script>
+</body>
+</html>
