@@ -173,7 +173,7 @@
 
         button.btn-purple { background-color: #8c00ff; color: #fff; }
         button.btn-purple:hover:not(:disabled) { background-color: #7000cc; }
-        
+
         .btn-demo { background-color: #8c00ff; color: #fff; display: none; }
         .btn-demo:hover:not(:disabled) { background-color: #7000cc; }
 
@@ -191,6 +191,9 @@
             background-color: #050505; 
             border: 1px solid #333; 
             box-shadow: 0 0 15px rgba(0,0,0,0.5); 
+            width: 100%;
+            max-width: 800px;
+            aspect-ratio: 4 / 3;
         }
 
         #estado-container {
@@ -459,7 +462,7 @@
     </div>
 
     <canvas id="simCanvas" width="800" height="600"></canvas>
-    <canvas id="hiddenCanvas" width="800" height="600" style="display: none;"></canvas>
+    <canvas id="hiddenCanvas" style="display: none;"></canvas>
 
     <div id="estado-container">
         <div id="estado">Estado: ESPERANDO IMAGEN O JSON</div>
@@ -528,11 +531,15 @@
                 estListo: "¡Cálculo finalizado! Reproduce la simulación para ver el resultado.",
                 estRepPausa: "Estado: Reproducción pausada (Fotograma {frame}).",
                 estRep: "Reproduciendo simulación a {fps} FPS...",
+                estRepDemo: "Reproduciendo Demo a {fps} FPS...",
+                estRepDemoPausa: "Demo Pausada (Fotograma {frame}).",
                 estRepFin: "Reproducción finalizada. Puedes reproducir de nuevo.",
+                estRepDemoFin: "Demo finalizada. Puedes reproducir tu propia simulación.",
                 errCors: "Error de lectura de imagen (CORS).",
                 errImport: "Archivo inválido o corrupto.",
                 btnDlWait: "Procesando video, espera...",
                 fileSimulation: "simulacion",
+                btnDemo: "Demo 👀",
                 
                 t_dropzone: "Haz clic o arrastra una imagen o un archivo JSON exportado.",
                 t_cantidad: "Número total de partículas.",
@@ -563,7 +570,7 @@
                 t_btnpintar: "Aplica la textura de la imagen a las partículas en su posición actual y genera el video.",
                 t_vel: "Multiplicador de velocidad de reproducción del video interactivo.",
                 t_btnplay: "Reproduce la simulación precalculada desde la RAM.",
-                t_btndemo: "Carga y reproduce una simulación de prueba al instante.",
+                t_btndemo: "Carga y reproduce una simulación de prueba al instante sin borrar tu configuración actual.",
                 t_btnpausarplay: "Pausa la reproducción en tiempo real.",
                 t_btndl: "Exporta la simulación a un archivo .webm local para compartir.",
                 t_btnexport: "Exporta la simulación calculada a un archivo JSON optimizado para cargarla después al instante.",
@@ -673,11 +680,15 @@
                 estListo: "Calculation finished! Play the simulation to see the result.",
                 estRepPausa: "Status: Playback paused (Frame {frame}).",
                 estRep: "Playing simulation at {fps} FPS...",
+                estRepDemo: "Playing Demo at {fps} FPS...",
+                estRepDemoPausa: "Demo Paused (Frame {frame}).",
                 estRepFin: "Playback finished. You can play again.",
+                estRepDemoFin: "Demo finished. You can now play your own simulation.",
                 errCors: "Image read error (CORS).",
                 errImport: "Invalid or corrupted file.",
                 btnDlWait: "Processing video, please wait...",
                 fileSimulation: "simulation",
+                btnDemo: "Demo 👀",
                 
                 t_dropzone: "Click or drag an image or an exported JSON file here.",
                 t_cantidad: "Total number of particles.",
@@ -708,7 +719,7 @@
                 t_btnpintar: "Applies the texture to the particles at their current position and generates the video.",
                 t_vel: "Video playback speed multiplier.",
                 t_btnplay: "Plays the precalculated simulation.",
-                t_btndemo: "Instantly loads and plays a test simulation.",
+                t_btndemo: "Instantly loads and plays a test simulation without deleting your current settings.",
                 t_btnpausarplay: "Pauses visual playback.",
                 t_btndl: "Exports the simulation to a local .webm file.",
                 t_btnexport: "Exports the baked simulation to an optimized JSON file to load it instantly later.",
@@ -778,6 +789,7 @@
         function applyLanguage() {
             const t = translations[currentLang];
             document.getElementById('btn-help').textContent = t.btnHelp;
+            document.getElementById('btn-demo').textContent = t.btnDemo;
             document.getElementById('lbl-dropzone').textContent = t.dropzone;
             document.getElementById('drop-zone').title = t.t_dropzone;
             document.getElementById('lbl-donar').textContent = t.lblDonar;
@@ -870,8 +882,6 @@
         const canvas = document.getElementById('simCanvas');
         const ctx = canvas.getContext('2d');
         const hiddenCanvas = document.createElement('canvas'); 
-        hiddenCanvas.width = 800;
-        hiddenCanvas.height = 600;
         const hCtx = hiddenCanvas.getContext('2d');
 
         const dropZone = document.getElementById('drop-zone');
@@ -933,10 +943,12 @@
         let isCalcPaused = false;
         let isPlayingPaused = false;
         let isCalculating = false;
+        let isPlayingDemo = false;
         let estadoStr = 'ESPERANDO';
         
         let renderFrames = []; 
         let playbackIndex = 0;
+        let demoPlaybackIndex = 0;
         let videoBlob = null;
         let isVideoReady = false; 
         let recordingInterval = null;
@@ -952,6 +964,7 @@
         let frameInterval = 1000 / targetFPS;
         let lastTime = 0;
         let lastPlaybackTime = 0;
+        let demoLastTime = 0;
         
         let boxW = 400; 
         let wallLeft = (canvas.width - boxW) / 2;
@@ -959,6 +972,7 @@
         let floorY = canvas.height - 20;
         let particleRadius = 5;
 
+        // Base64 Helpers
         function encodeF32(f32array) {
             let u8 = new Uint8Array(f32array.buffer);
             let str = '';
@@ -983,14 +997,28 @@
                 throw new Error('No demo');
             })
             .then(data => {
+                data.decodedFrames = data.frames.map(b64 => decodeF32(b64));
                 demoData = data;
-                btnDemo.style.display = 'block';
+                btnDemo.style.display = 'inline-block';
                 btnDemo.title = translations[currentLang].t_btndemo;
             })
             .catch(e => { });
 
         btnDemo.addEventListener('click', () => {
-            if (demoData) procesarJSON(demoData);
+            if (!demoData) return;
+            cancelAnimationFrame(animationId);
+            clearTimeout(timeoutId);
+            isPlayingPaused = false;
+            isPlayingDemo = true;
+            demoPlaybackIndex = 0;
+            demoLastTime = 0;
+            estadoStr = 'REPRODUCIENDO_DEMO';
+            actualizarEstadoUI();
+            
+            btnPausePlay.disabled = false;
+            btnPausePlay.textContent = translations[currentLang].btnPausar;
+            
+            requestAnimationFrame(animarPlaybackDemo);
         });
 
         btnHelp.addEventListener('click', () => helpModal.style.display = 'flex');
@@ -1028,16 +1056,24 @@
                     color = "#00adb5";
                     break;
                 case 'PAUSADO_REP':
-                    texto = t.estRepPausa.replace("{frame}", Math.floor(playbackIndex));
+                    texto = isPlayingDemo ? t.estRepDemoPausa.replace("{frame}", Math.floor(demoPlaybackIndex)) : t.estRepPausa.replace("{frame}", Math.floor(playbackIndex));
                     color = "#ffaa00";
                     break;
                 case 'REPRODUCIENDO':
                     texto = t.estRep.replace("{fps}", targetFPS);
                     color = "#ff0055";
                     break;
+                case 'REPRODUCIENDO_DEMO':
+                    texto = t.estRepDemo.replace("{fps}", demoData.fps || 60);
+                    color = "#8c00ff";
+                    break;
                 case 'FIN_REP':
                     texto = t.estRepFin;
                     color = "#00adb5";
+                    break;
+                case 'FIN_DEMO':
+                    texto = t.estRepDemoFin;
+                    color = "#8c00ff";
                     break;
             }
             displayEstado.textContent = texto;
@@ -1110,7 +1146,7 @@
             
             updateTargetFrames();
             
-            if (allBalls.length === 0 && !isCalculating && estadoStr !== 'LISTO') {
+            if (allBalls.length === 0 && !isCalculating && estadoStr !== 'LISTO' && !isPlayingDemo) {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 dibujarFondoYParedes(ctx);
             }
@@ -1121,7 +1157,7 @@
         });
 
         inputBgColor.addEventListener('input', (e) => {
-            if (allBalls.length === 0 && !isCalculating && estadoStr !== 'LISTO') {
+            if (allBalls.length === 0 && !isCalculating && estadoStr !== 'LISTO' && !isPlayingDemo) {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 dibujarFondoYParedes(ctx);
             }
@@ -1132,7 +1168,7 @@
             document.getElementById('val-ancho').textContent = boxW;
             wallLeft = (canvas.width - boxW) / 2;
             wallRight = wallLeft + boxW;
-            if (allBalls.length === 0 && !isCalculating && estadoStr !== 'LISTO') {
+            if (allBalls.length === 0 && !isCalculating && estadoStr !== 'LISTO' && !isPlayingDemo) {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 dibujarFondoYParedes(ctx);
             }
@@ -1195,6 +1231,7 @@
                     currentImage = img;
                     btnIniciar.disabled = false;
                     estadoStr = 'ESPERANDO';
+                    isPlayingDemo = false;
                     actualizarEstadoUI();
                     
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -1319,7 +1356,7 @@
 
         function dibujarFondoYParedes(context) {
             context.fillStyle = inputBgColor.value;
-            context.fillRect(0, 0, canvas.width, canvas.height);
+            context.fillRect(0, 0, 800, 600);
             context.strokeStyle = '#2e2e2e';
             context.lineWidth = 2;
             context.beginPath();
@@ -1388,6 +1425,7 @@
             isCalculating = true;
             isCalcPaused = false;
             isVideoReady = false;
+            isPlayingDemo = false;
             wasShowingVisual = checkMostrarCalc.checked;
             estadoStr = wasShowingVisual ? 'SIMULANDO' : 'MAXCPU';
             
@@ -1693,7 +1731,11 @@
                     return b;
                 });
                 
-                renderFrames = data.frames.map(b64 => decodeF32(b64));
+                if (data.decodedFrames) {
+                    renderFrames = data.decodedFrames;
+                } else {
+                    renderFrames = data.frames.map(b64 => decodeF32(b64));
+                }
                 
                 cancelAnimationFrame(animationId);
                 clearTimeout(timeoutId);
@@ -1701,6 +1743,7 @@
                 isCalcPaused = false;
                 isPlayingPaused = false;
                 playbackIndex = 0;
+                isPlayingDemo = false;
                 
                 estadoStr = 'LISTO';
                 actualizarEstadoUI();
@@ -1734,8 +1777,24 @@
         function grabarVideoFondoNinja() {
             isVideoReady = false;
             
+            const rect = canvas.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            let targetW = Math.round(rect.width * dpr);
+            let targetH = Math.round(rect.height * dpr);
+            
+            if (targetW === 0 || targetH === 0) {
+                targetW = 800;
+                targetH = 600;
+            }
+            
+            hiddenCanvas.width = targetW;
+            hiddenCanvas.height = targetH;
+            
+            const scaleX = targetW / 800;
+            const scaleY = targetH / 600;
+            
             const stream = hiddenCanvas.captureStream(targetFPS); 
-            mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm', videoBitsPerSecond: 8000000 });
+            mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm', videoBitsPerSecond: 15000000 });
             let chunks = [];
             
             mediaRecorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
@@ -1754,8 +1813,19 @@
                     return;
                 }
 
-                hCtx.clearRect(0, 0, hiddenCanvas.width, hiddenCanvas.height);
-                dibujarFondoYParedes(hCtx);
+                hCtx.save();
+                hCtx.scale(scaleX, scaleY);
+                
+                hCtx.fillStyle = inputBgColor.value;
+                hCtx.fillRect(0, 0, 800, 600);
+                hCtx.strokeStyle = '#2e2e2e';
+                hCtx.lineWidth = 2;
+                hCtx.beginPath();
+                hCtx.moveTo(wallLeft, 0);
+                hCtx.lineTo(wallLeft, floorY);
+                hCtx.lineTo(wallRight, floorY);
+                hCtx.lineTo(wallRight, 0);
+                hCtx.stroke();
                 
                 let data = renderFrames[recIndex];
                 for (let j = 0; j < allBalls.length; j++) {
@@ -1768,6 +1838,8 @@
                         hCtx.fill();
                     }
                 }
+                
+                hCtx.restore();
                 recIndex++;
             }, 1000 / targetFPS); 
         }
@@ -1777,13 +1849,20 @@
             btnPausePlay.textContent = isPlayingPaused ? translations[currentLang].btnReanudar : translations[currentLang].btnPausar;
             
             if (isPlayingPaused) {
-                estadoStr = 'PAUSADO_REP';
+                estadoStr = isPlayingDemo ? 'PAUSADO_DEMO' : 'PAUSADO_REP';
                 actualizarEstadoUI();
             } else {
-                lastPlaybackTime = 0; 
-                estadoStr = 'REPRODUCIENDO';
-                actualizarEstadoUI();
-                requestAnimationFrame(animarPlayback);
+                if (isPlayingDemo) {
+                    demoLastTime = 0; 
+                    estadoStr = 'REPRODUCIENDO_DEMO';
+                    actualizarEstadoUI();
+                    requestAnimationFrame(animarPlaybackDemo);
+                } else {
+                    lastPlaybackTime = 0; 
+                    estadoStr = 'REPRODUCIENDO';
+                    actualizarEstadoUI();
+                    requestAnimationFrame(animarPlayback);
+                }
             }
         });
 
@@ -1792,6 +1871,7 @@
             playbackIndex = 0;
             lastPlaybackTime = 0;
             isPlayingPaused = false;
+            isPlayingDemo = false;
             
             btnPausePlay.disabled = false;
             btnPausePlay.textContent = translations[currentLang].btnPausar;
@@ -1802,7 +1882,7 @@
         });
 
         function animarPlayback(time) {
-            if (isPlayingPaused) return;
+            if (isPlayingPaused || isPlayingDemo) return;
 
             if (!lastPlaybackTime) lastPlaybackTime = time;
             let dtReal = time - lastPlaybackTime;
@@ -1838,6 +1918,67 @@
             else {
                 estadoStr = 'FIN_REP';
                 actualizarEstadoUI();
+                btnPausePlay.disabled = true;
+            }
+        }
+
+        function animarPlaybackDemo(time) {
+            if (!isPlayingDemo || isPlayingPaused) return;
+
+            if (!demoLastTime) demoLastTime = time;
+            let dtReal = time - demoLastTime;
+
+            let demoFPS = demoData.fps || 60;
+            let speedMult = parseFloat(inputSpeed.value) || 1.0;
+            let framesAvanzar = (dtReal / (1000/demoFPS)) * speedMult;
+            
+            demoPlaybackIndex += framesAvanzar;
+            demoLastTime = time;
+
+            let intIndex = Math.floor(demoPlaybackIndex);
+            let frames = demoData.decodedFrames;
+
+            if (intIndex < frames.length) {
+                let data = frames[intIndex];
+                
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                let dBoxW = demoData.boxW || 400;
+                let dWallLeft = (canvas.width - dBoxW) / 2;
+                let dWallRight = dWallLeft + dBoxW;
+                
+                ctx.fillStyle = demoData.bg || '#050505';
+                ctx.fillRect(0, 0, 800, 600);
+                ctx.strokeStyle = '#2e2e2e';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(dWallLeft, 0);
+                ctx.lineTo(dWallLeft, floorY);
+                ctx.lineTo(dWallRight, floorY);
+                ctx.lineTo(dWallRight, 0);
+                ctx.stroke();
+
+                let dRadius = demoData.radius || 5;
+                let dColors = demoData.colors;
+
+                for (let j = 0; j < dColors.length; j++) {
+                    let posX = data[j * 2];
+                    let posY = data[j * 2 + 1];
+                    
+                    if (posX !== -9999) { 
+                        ctx.beginPath();
+                        ctx.arc(posX, posY, dRadius, 0, Math.PI * 2);
+                        ctx.fillStyle = dColors[j]; 
+                        ctx.fill();
+                    }
+                }
+
+                animationId = requestAnimationFrame(animarPlaybackDemo);
+            } 
+            else {
+                estadoStr = 'FIN_DEMO';
+                actualizarEstadoUI();
+                isPlayingDemo = false;
                 btnPausePlay.disabled = true;
             }
         }
@@ -1893,7 +2034,7 @@
                     URL.revokeObjectURL(url);
                 }
             } catch (e) {
-                // Falla silenciosa si el usuario cancela la ventana de guardado
+                
             }
         });
 
